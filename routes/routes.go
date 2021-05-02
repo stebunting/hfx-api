@@ -17,8 +17,8 @@ type Route struct {
 }
 
 type Response struct {
-	Status  string
-	Details interface{}
+	Status  string      `json:"status"`
+	Details interface{} `json:"details"`
 }
 
 func ConfigRoutes(db *pg.DB) Route {
