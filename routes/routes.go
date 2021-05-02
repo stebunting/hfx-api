@@ -21,18 +21,25 @@ type Response struct {
 	Details interface{}
 }
 
-func NewRoutes(db *pg.DB) Route {
+func ConfigRoutes(db *pg.DB) Route {
 	return Route{db}
 }
 
-func (s *Route) returnError(w http.ResponseWriter, errorDescription string) {
-	w.WriteHeader(http.StatusBadRequest)
+func (s *Route) Wake(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		w.Header().Set("Content-Type", "application/json")
 
-	response, _ := json.Marshal(Response{
-		Status:  "Error",
-		Details: errorDescription,
-	})
-	w.Write([]byte(response))
+		response, err := json.Marshal(Response{
+			Status:  "OK",
+			Details: "Awake",
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(response)
+	}
 }
 
 func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
@@ -115,6 +122,7 @@ func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
+		w.WriteHeader(http.StatusOK)
 		w.Write(response)
 	}
 }
@@ -134,6 +142,7 @@ func (s *Route) GetCurrencies(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
+		w.WriteHeader(http.StatusOK)
 		w.Write(response)
 	}
 }
@@ -148,6 +157,7 @@ func (s *Route) UpdateCurrencies(w http.ResponseWriter, r *http.Request) {
 			Status:  "OK",
 			Details: "Currencies Updated",
 		})
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(res))
 	}
 }
@@ -177,6 +187,7 @@ func (s *Route) DbInit(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
+		w.WriteHeader(http.StatusOK)
 		w.Write(response)
 	}
 }
@@ -204,4 +215,14 @@ func (s *Route) ScrapeCurrencies() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func (s *Route) returnError(w http.ResponseWriter, errorDescription string) {
+	w.WriteHeader(http.StatusBadRequest)
+
+	response, _ := json.Marshal(Response{
+		Status:  "Error",
+		Details: errorDescription,
+	})
+	w.Write([]byte(response))
 }

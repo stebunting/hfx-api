@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -17,11 +18,13 @@ func main() {
 	model := model.Model{}
 	model.Connect()
 
-	r := routes.NewRoutes(model.Db)
+	r := routes.ConfigRoutes(model.Db)
 
-	http.HandleFunc("/getrate", r.GetRate)
-	http.HandleFunc("/getcurrencies", r.GetCurrencies)
-	http.HandleFunc("/updatecurrencies", r.UpdateCurrencies)
+	http.HandleFunc("/wake", r.Wake)
 	http.HandleFunc("/dbinit", r.DbInit)
-	http.ListenAndServe(":"+port, nil)
+	http.HandleFunc("/updatecurrencies", r.UpdateCurrencies)
+	http.HandleFunc("/getcurrencies", r.GetCurrencies)
+	http.HandleFunc("/getrate", r.GetRate)
+
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
