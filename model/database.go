@@ -14,22 +14,19 @@ type Model struct {
 }
 
 func (s *Model) Connect() {
-	address := os.Getenv("DB_URL")
-	database := os.Getenv("DB_DB")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
+	address := os.Getenv("DATABASE_URL")
 
-	db := pg.Connect(&pg.Options{
-		Addr:     address,
-		Database: database,
-		User:     user,
-		Password: password,
-	})
+	options, err := pg.ParseURL(address)
+	if err != nil {
+		panic(err)
+	}
+
+	db := pg.Connect(options)
 
 	ctx := context.Background()
-	err := db.Ping(ctx)
+	err = db.Ping(ctx)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	s.Db = db

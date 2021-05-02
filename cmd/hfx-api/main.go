@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/stebunting/hfx-backend/model"
@@ -10,10 +10,9 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	godotenv.Load()
+
+	port := os.Getenv("PORT")
 
 	model := model.Model{}
 	model.Connect()
@@ -24,5 +23,5 @@ func main() {
 	http.HandleFunc("/getcurrencies", r.GetCurrencies)
 	http.HandleFunc("/updatecurrencies", r.UpdateCurrencies)
 	http.HandleFunc("/dbinit", r.DbInit)
-	http.ListenAndServe(":5000", nil)
+	http.ListenAndServe(":"+port, nil)
 }
