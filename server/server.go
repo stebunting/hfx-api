@@ -1,9 +1,10 @@
-package routes
+package server
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
@@ -75,7 +76,11 @@ func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
 			s.returnError(w, "Date required")
 			return
 		}
-		date, err := scrape.ParseDate(d[0])
+		decoded, err := url.QueryUnescape(d[0])
+		if err != nil {
+			panic(err)
+		}
+		date, err := scrape.ParseDate(decoded)
 		if err != nil {
 			s.returnError(w, "Invalid date")
 			return
@@ -97,6 +102,11 @@ func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
 			result, err = scrape.ScrapeCurrency(from, to, date)
 			if err != nil {
 				log.Fatal(err)
+			}
+
+			if len(result) == 0 {
+				s.returnError(w, "Could not get result")
+				return
 			}
 
 			_, err = s.db.Model(&result).Insert()

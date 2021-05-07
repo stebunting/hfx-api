@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/stebunting/hfx-backend/cors"
 	"github.com/stebunting/hfx-backend/model"
-	"github.com/stebunting/hfx-backend/routes"
+	"github.com/stebunting/hfx-backend/server"
 )
 
 func main() {
@@ -19,13 +19,13 @@ func main() {
 	model := model.Model{}
 	model.Connect()
 
-	r := routes.ConfigRoutes(model.Db)
+	server := server.ConfigRoutes(model.Db)
 
-	http.Handle("/wake", cors.Middleware(http.HandlerFunc(r.Wake)))
-	http.Handle("/dbinit", cors.Middleware(http.HandlerFunc(r.DbInit)))
-	http.Handle("/updatecurrencies", cors.Middleware(http.HandlerFunc(r.UpdateCurrencies)))
-	http.Handle("/getcurrencies", cors.Middleware(http.HandlerFunc(r.GetCurrencies)))
-	http.Handle("/getrate", cors.Middleware(http.HandlerFunc(r.GetRate)))
+	http.Handle("/wake", cors.Middleware(http.HandlerFunc(server.Wake)))
+	http.Handle("/dbinit", cors.Middleware(http.HandlerFunc(server.DbInit)))
+	http.Handle("/updatecurrencies", cors.Middleware(http.HandlerFunc(server.UpdateCurrencies)))
+	http.Handle("/getcurrencies", cors.Middleware(http.HandlerFunc(server.GetCurrencies)))
+	http.Handle("/getrate", cors.Middleware(http.HandlerFunc(server.GetRate)))
 
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
