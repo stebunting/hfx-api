@@ -1,6 +1,8 @@
 package scraper
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -27,6 +29,64 @@ func NewScraper() Scraper {
 	return Scraper{
 		codeValidator: *re,
 	}
+}
+
+type XeResponse struct {
+	PageProps XePageProps `json:"pageProps"`
+}
+
+type XePageProps struct {
+	HistoricRates []XeHistoricRate `json:"historicRates"`
+}
+
+type XeHistoricRate struct {
+	Currency string  `json:"currency"`
+	Rate     float64 `json:"rate"`
+}
+
+func (s *Scraper) GetCurrency(from currency.Code, to currency.Code, date time.Time) ([]model.Exchange, error) {
+	url, err := url.Parse("https://xe.com/_next/data/Y8_6DNxLmlBwzHvjNAjvA/en/currencytables.json")
+	if err != nil {
+		panic(err)
+	}
+	query := url.Query()
+	query.Set("from", from.String())
+	query.Set("date", s.FormatDate(date))
+	url.RawQuery = query.Encode()
+
+	response, err := http.Get(url.String())
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	xe := XeResponse{}
+	err = json.Unmarshal(body, &xe)
+	if err != nil {
+		panic(err)
+	}
+
+	var data []model.Exchange
+	for _, r := range xe.PageProps.HistoricRates {
+		code, err := currency.NewCode(r.Currency)
+		if err == nil {
+			if code == to {
+				data = append(data, model.Exchange{
+					Date:     date,
+					FromCode: from.String(),
+					ToCode:   code.String(),
+					Rate:     r.Rate,
+				})
+			}
+		}
+	}
+
+	return data, nil
 }
 
 func (s *Scraper) ScrapeCurrency(from currency.Code, to currency.Code, date time.Time) ([]model.Exchange, error) {
