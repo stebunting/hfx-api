@@ -99,7 +99,7 @@ func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(result) == 0 {
-			result, err = scrape.GetCurrency(from, to, date)
+			result, err = scrape.ScrapeCurrency(from, to, date)
 			if err != nil {
 				log.Fatal(err)
 			}
