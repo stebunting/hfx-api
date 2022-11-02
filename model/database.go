@@ -21,6 +21,8 @@ func (s *Model) Connect() {
 		panic(err)
 	}
 
+	options.PoolSize = 2
+
 	db := pg.Connect(options)
 
 	ctx := context.Background()
