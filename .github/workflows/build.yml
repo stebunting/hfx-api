@@ -9,12 +9,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
-        go-version: 1.16
+        go-version: 1.19
 
     - name: Build
       run: go build -v ./...
@@ -24,9 +24,3 @@ jobs:
     
     - name: Send Coverage to CodeCov.io
       run: bash <(curl -s https://codecov.io/bash)
-
-    - uses: akhileshns/heroku-deploy@v3.12.12
-      with:
-        heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-        heroku_app_name: "hfx-api"
-        heroku_email: "stebunting@gmail.com"
