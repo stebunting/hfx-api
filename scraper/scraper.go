@@ -175,7 +175,7 @@ func (s *Scraper) ScrapeSymbols() (*[]model.Currency, error) {
 	document.Find(sectionClass).Each(func(i int, sel *goquery.Selection) {
 		code, err := currency.NewCode(sel.Find("div").Eq(3).Text())
 		if err == nil {
-			symbol := sel.Find("div").Eq(6).Text()
+			symbol := sel.Find("div").Eq(7).Text()
 
 			if symbol != "" {
 				newSymbol := model.Currency{
