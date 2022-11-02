@@ -171,11 +171,11 @@ func (s *Scraper) ScrapeSymbols() (*[]model.Currency, error) {
 
 	var symbols []model.Currency
 
-	tableClass := "table.currencySymblTable > tbody > tr"
-	document.Find(tableClass).Each(func(i int, sel *goquery.Selection) {
-		code, err := currency.NewCode(sel.Find("td").Eq(1).Text())
+	sectionClass := "section > section > ul > li"
+	document.Find(sectionClass).Each(func(i int, sel *goquery.Selection) {
+		code, err := currency.NewCode(sel.Find("div").Eq(3).Text())
 		if err == nil {
-			symbol := sel.Find("td").Eq(6).Text()
+			symbol := sel.Find("div").Eq(6).Text()
 
 			if symbol != "" {
 				newSymbol := model.Currency{
