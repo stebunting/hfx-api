@@ -231,5 +231,5 @@ func (s *Scraper) ParseDate(date string) (time.Time, error) {
 }
 
 func (s *Scraper) FormatDate(date time.Time) string {
-	return date.Format("2006-01-02T15:04:05.000Z")
+	return date.Format("2006-01-02")
 }
