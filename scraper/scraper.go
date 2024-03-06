@@ -2,7 +2,7 @@ package scraper
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -60,7 +60,7 @@ func (s *Scraper) GetCurrency(from currency.Code, to currency.Code, date time.Ti
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		panic(err)
 	}
