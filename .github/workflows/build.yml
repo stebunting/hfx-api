@@ -2,25 +2,45 @@ name: Build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v4
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: 1.23
+        go-version: '1.23'
+
+    - name: Lint Source Code
+      uses: golangci/golangci-lint-action@v6
 
     - name: Build
-      run: go build -v ./...
+      run: go build -race -v ./cmd/hfx-api
 
     - name: Test
       run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
     
     - name: Send Coverage to CodeCov.io
       run: bash <(curl -s https://codecov.io/bash)
+
+  deploy:
+    name: Deploy
+
+    needs: build
+    
+    if: github.ref == 'refs/heads/production'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Deploy Hook
+        run: curl -s ${{ secrets.RENDER_DEPLOY_HOOK }}
