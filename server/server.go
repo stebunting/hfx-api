@@ -141,7 +141,7 @@ func (s *Route) GetCurrencies(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		w.Header().Set("Content-Type", "application/json")
 
-		var currencies []model.Currency
+		var currencies = []model.Currency{}
 		s.db.Model(&model.Currency{}).Order("code ASC").Select(&currencies)
 
 		response, err := json.Marshal(Response{
