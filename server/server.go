@@ -39,7 +39,10 @@ func (s *Route) Wake(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		_, err = w.Write(response)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -133,7 +136,10 @@ func (s *Route) GetRate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		_, err = w.Write(response)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -142,7 +148,10 @@ func (s *Route) GetCurrencies(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var currencies = []model.Currency{}
-		s.db.Model(&model.Currency{}).Order("code ASC").Select(&currencies)
+		err := s.db.Model(&model.Currency{}).Order("code ASC").Select(&currencies)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		response, err := json.Marshal(Response{
 			Status:  "OK",
@@ -153,7 +162,10 @@ func (s *Route) GetCurrencies(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		_, err = w.Write(response)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -168,7 +180,10 @@ func (s *Route) UpdateCurrencies(w http.ResponseWriter, r *http.Request) {
 			Details: "Currencies Updated",
 		})
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(res))
+		_, err := w.Write([]byte(res))
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -198,7 +213,10 @@ func (s *Route) DbInit(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		_, err = w.Write(response)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
@@ -210,7 +228,11 @@ func (s *Route) ScrapeCurrencies() {
 		log.Fatal(err)
 	}
 
-	s.db.Model(&model.Currency{}).Where("TRUE").Delete()
+	_, err = s.db.Model(&model.Currency{}).Where("TRUE").Delete()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	_, err = s.db.Model(result).Insert()
 	if err != nil {
 		log.Fatal(err)
@@ -234,5 +256,8 @@ func (s *Route) returnError(w http.ResponseWriter, errorDescription string) {
 		Status:  "Error",
 		Details: errorDescription,
 	})
-	w.Write([]byte(response))
+	_, err := w.Write([]byte(response))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
