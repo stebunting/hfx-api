@@ -3,44 +3,76 @@ name: Build
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags-ignore:
-      - '**'
+      - "**"
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.23'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.2"
 
-    - name: Lint Source Code
-      uses: golangci/golangci-lint-action@v6
+      - name: Lint Source Code
+        uses: golangci/golangci-lint-action@v7
 
-    - name: Build
-      run: go build -race -v ./cmd/hfx-api
+      - name: Build
+        run: GOOS=linux GOARCH=arm64 go build -v -o ./dist/hfx-api ./cmd/hfx-api
 
-    - name: Test
-      run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
-    
-    - name: Send Coverage to CodeCov.io
-      run: bash <(curl -s https://codecov.io/bash)
+      - name: Test
+        run: go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+      - name: Send Coverage to CodeCov.io
+        run: bash <(curl -s https://codecov.io/bash)
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist
+          retention-days: 7
 
   deploy:
-    name: Deploy
+    name: Deploy to RPi
 
     needs: build
-    
+
     if: github.ref == 'refs/heads/production'
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Call Deploy Hook
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts
+          path: dist
+
+      - name: Deploy
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+        with:
+          server: pi.stevebunting.com
+          username: ubuntu
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          local_path: ./dist/
+          remote_path: /opt/hfx-api
+
+  render-deploy:
+    name: Deploy to Render
+
+    needs: build
+
+    if: github.ref == 'refs/heads/production'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Call Render Deploy Hook
         run: curl -s ${{ secrets.RENDER_DEPLOY_HOOK }}
