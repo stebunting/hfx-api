@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,10 +19,20 @@ func main() {
 		log.Print(err)
 	}
 
-	port := os.Getenv("PORT")
+	portEnv := os.Getenv("PORT")
+	addressEnv := os.Getenv("DATABASE_URL")
+	certFileEnv := os.Getenv("CERT_FILE")
+	keyFileEnv := os.Getenv("KEY_FILE")
+
+	port := flag.String("port", portEnv, "Port Number")
+	dbPath := flag.String("db", addressEnv, "DB Path")
+	fullchain := flag.String("fullchain", certFileEnv, "Full Chain Key")
+	privKey := flag.String("privkey", keyFileEnv, "Private Key")
+
+	flag.Parse()
 
 	model := model.Model{}
-	model.Connect()
+	model.Connect(*dbPath)
 
 	server := server.ConfigRoutes(model.Db)
 
@@ -30,5 +42,5 @@ func main() {
 	http.Handle("/getcurrencies", cors.Middleware(http.HandlerFunc(server.GetCurrencies)))
 	http.Handle("/getrate", cors.Middleware(http.HandlerFunc(server.GetRate)))
 
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServeTLS(fmt.Sprintf(":%s", *port), *fullchain, *privKey, nil))
 }
