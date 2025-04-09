@@ -35,7 +35,10 @@ func (s *Model) Connect() {
 }
 
 func (s *Model) Disconnect() {
-	s.Db.Close()
+	err := s.Db.Close()
+	if err != nil {
+		log.Println("could not close db")
+	}
 }
 
 func (s *Model) CreateSchema() {

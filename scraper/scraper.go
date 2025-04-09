@@ -58,7 +58,6 @@ func (s *Scraper) GetCurrency(from currency.Code, to currency.Code, date time.Ti
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -84,6 +83,11 @@ func (s *Scraper) GetCurrency(from currency.Code, to currency.Code, date time.Ti
 				})
 			}
 		}
+	}
+
+	err = response.Body.Close()
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
@@ -141,7 +145,7 @@ func (s *Scraper) ScrapeCurrencies() (*[]model.Currency, error) {
 	selector := "table#currencyTable > tbody > tr"
 	document.Find(selector).Each(func(i int, sel *goquery.Selection) {
 		c := sel.Find("td").Eq(0).Find("a").Text()
-		code, err := currency.NewCode(strings.Replace(c, "*", "", -1))
+		code, err := currency.NewCode(strings.ReplaceAll(c, "*", ""))
 		if err == nil {
 			name := sel.Find("td").Eq(1).Text()
 
@@ -201,9 +205,13 @@ func (s *Scraper) getDocument(url *url.URL) (*goquery.Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
 	document, err := goquery.NewDocumentFromReader(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = response.Body.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +220,7 @@ func (s *Scraper) getDocument(url *url.URL) (*goquery.Document, error) {
 }
 
 func (s *Scraper) floatFromStr(n string) float64 {
-	number := strings.Replace(n, ",", "", -1)
+	number := strings.ReplaceAll(n, ",", "")
 	f, err := strconv.ParseFloat(number, 64)
 	if err != nil {
 		log.Fatal(err)
